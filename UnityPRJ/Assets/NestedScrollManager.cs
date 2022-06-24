@@ -9,6 +9,8 @@ public class NestedScrollManager : MonoBehaviour, IBeginDragHandler, IDragHandle
 {
     public Scrollbar scrollbar;
     public Transform contentTr;
+    public Slider tabSlider;
+    public RectTransform[] BtnRect, BtnImageRect;
 
     const int SIZE = 4;
     
@@ -26,11 +28,6 @@ public class NestedScrollManager : MonoBehaviour, IBeginDragHandler, IDragHandle
         {
             pos[i] = distance * i;
         }
-
-        print(pos[0]);
-        print(pos[1]);
-        print(pos[2]);
-        print(pos[3]);
     }
 
     float SetPos()
@@ -88,9 +85,41 @@ public class NestedScrollManager : MonoBehaviour, IBeginDragHandler, IDragHandle
     // Update is called once per frame
     void Update()
     {
-        if(!isDrag)
+        if (Time.time < 0.1f) return;
+        
+        tabSlider.value = scrollbar.value;
+
+        if (!isDrag)
         {
             scrollbar.value = Mathf.Lerp(scrollbar.value, targetPos, 0.1f);
+            for(int i = 0; i < SIZE; i++)
+            {
+                BtnRect[i].sizeDelta = new Vector2(i == targetIndex ? 360 : 180, BtnRect[i].sizeDelta.y);
+            }
         }
+
+        for(int i = 0; i < SIZE; i++)
+        {
+            Vector3 BtnTargetPos = BtnRect[i].anchoredPosition3D;
+            Vector3 BtnTargetScale = Vector3.one;
+            bool textActive = false;
+
+            if(i== targetIndex)
+            {
+                BtnTargetPos.y = -23f;
+                BtnTargetScale = new Vector3(1.2f, 1.2f, 1);
+                textActive = true;
+            }
+
+            BtnImageRect[i].anchoredPosition3D = Vector3.Lerp(BtnImageRect[i].anchoredPosition3D, BtnTargetPos, 0.25f);
+            BtnImageRect[i].localScale = Vector3.Lerp(BtnImageRect[i].localScale, BtnTargetScale, 0.25f);
+            BtnImageRect[i].transform.GetChild(0).gameObject.SetActive(textActive);
+        }
+    }
+
+    public void TabClick(int n)
+    {
+        targetIndex = n;
+        targetPos = pos[n];
     }
 }
